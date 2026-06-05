@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>國小版對版補充教材 市調分析站</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+:root{
+  --bg:#f0eeea;--surface:#fff;--surface2:#f8f7f4;--border:#ddd8d0;
+  --text:#18160f;--muted:#7a756a;--accent:#b84a1e;--accent2:#1e5fa8;
+  --up:#1e7a4a;--up-bg:#e3f3ea;--dn:#c0392b;--dn-bg:#fde8e8;--flat:#888;--flat-bg:#eee;
+  --lian:#1e5fa8;--zdfl:#7b2fa0;--xishu:#2e7a5a;
+  --fs-base:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:var(--fs-base)}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── SIZE CONTROL ── */
+.size-bar{background:var(--text);padding:6px 32px;display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.size-bar span{color:rgba(255,255,255,.5);font-size:11px}
+.sz-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:12px;font-family:inherit}
+.sz-btn:hover{background:rgba(255,255,255,.3)}
+
+/* ── HEADER ── */
+header{background:var(--text);color:white;padding:24px 32px 16px;border-bottom:4px solid var(--accent)}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{font-size:1.3rem;font-weight:900;letter-spacing:.02em}
+header p{font-size:.75rem;opacity:.55;font-family:'IBM Plex Mono',monospace;margin-top:4px}
+.file-badge{font-size:.7rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:4px 10px;color:rgba(255,255,255,.7);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+
+/* ── TABS ── */
+.tabs{background:var(--text);display:flex;padding:0 32px;border-bottom:0}
+.tab{padding:10px 18px;font-size:.8rem;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#fff;border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:rgba(255,255,255,.75)}
+
+/* ── MAIN ── */
+.main{padding:24px 32px;max-width:1280px;margin:0 auto}
+
+/* ── SCORECARD ── */
+.scorecard{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;border-left:4px solid var(--accent)}
+.sc-label{font-size:.7rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.sc-val{font-size:1.5rem;font-weight:900;font-family:'IBM Plex Mono',monospace;line-height:1}
+.sc-sub{font-size:.72rem;color:var(--muted);margin-top:5px}
+.sc-card.warn{border-left-color:var(--dn)}
+.sc-card.ok{border-left-color:var(--up)}
+
+/* ── SUMMARY TEXT ── */
+.summary-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:24px}
+.summary-box h3{font-size:.85rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.summary-box p{font-size:.82rem;line-height:1.7;color:#333;margin-bottom:6px}
+.summary-box p:last-child{margin-bottom:0}
+.highlight{font-weight:700;color:var(--accent)}
+.highlight-up{font-weight:700;color:var(--up)}
+.highlight-dn{font-weight:700;color:var(--dn)}
+
+/* ── PANELS ── */
+.panel{display:none}.panel.active{display:block}
+
+/* ── SECTION HEADER ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:.9rem;font-weight:700;border-left:4px solid var(--accent);padding-left:10px}
+.sec-note{font-size:.72rem;color:var(--muted)}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-bar label{font-size:.75rem;color:var(--muted);font-weight:600;white-space:nowrap}
+select,input[type=text]{font-family:'Noto Sans TC',sans-serif;font-size:.8rem;padding:6px 10px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+select:focus,input:focus{border-color:var(--accent)}
+.sort-wrap{display:flex;gap:5px;margin-left:auto}
+.s-btn{font-size:.72rem;padding:5px 10px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;white-space:nowrap}
+.s-btn.on,.s-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+table{width:100%;border-collapse:collapse;background:var(--surface);font-size:.78rem;min-width:700px}
+thead{background:var(--text);color:#fff}
+th{padding:10px 12px;text-align:left;font-weight:600;font-size:.7rem;letter-spacing:.04em;white-space:nowrap}
+th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:0}
+tbody tr:hover{background:#f5f3ef}
+td{padding:9px 12px;vertical-align:middle}
+td.r{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:.73rem}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:.65rem;font-weight:700;white-space:nowrap}
+.badge.north{background:#dce8f7;color:#1e5fa8}.badge.central{background:#daf0e5;color:#1e7a4a}.badge.south{background:#eedff3;color:#7b2fa0}
+.prod-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:700}
+.prod-lian{background:#dce8f7;color:var(--lian)}.prod-zdfl{background:#e8d8f5;color:var(--zdfl)}.prod-xishu{background:#d8f0e5;color:var(--xishu)}
+
+/* ── DELTA ── */
+.delta{font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block;min-width:50px;text-align:center;font-family:'IBM Plex Mono',monospace}
+.delta.up{color:var(--up);background:var(--up-bg)}.delta.dn{color:var(--dn);background:var(--dn-bg)}.delta.flat{color:var(--flat);background:var(--flat-bg)}
+
+/* ── ANOMALY ── */
+.anom-pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;background:#fff3cd;color:#856404;border:1px solid #ffc107}
+.anom-pill.severe{background:#fde8e8;color:var(--dn);border-color:#f5c6cb}
+.anom-pill.ok{background:var(--up-bg);color:var(--up);border-color:#b8ddc9}
+
+/* ── BAR ── */
+.bar-wrap{width:64px;height:5px;background:var(--bg);border-radius:3px;display:inline-block;vertical-align:middle;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.bar-lian{background:var(--lian)}.bar-zdfl{background:var(--zdfl)}.bar-xishu{background:var(--xishu)}
+
+/* ── REGION GRID ── */
+.region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.r-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:box-shadow .2s}
+.r-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.r-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.r-card.north::before{background:var(--lian)}.r-card.central::before{background:var(--up)}.r-card.south::before{background:var(--zdfl)}
+.r-card.total-card{grid-column:1/-1;background:var(--text);color:#fff}
+.r-name{font-size:.9rem;font-weight:700;margin-bottom:12px}
+.total-card .r-name{color:#fff}
+.r-rows{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.r-metric{background:var(--surface2);border-radius:5px;padding:7px 9px}
+.total-card .r-metric{background:rgba(255,255,255,.08)}
+.r-metric-label{font-size:.62rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.total-card .r-metric-label{color:rgba(255,255,255,.5)}
+.r-metric-s1{font-size:.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.total-card .r-metric-s1{color:rgba(255,255,255,.4)}
+.r-metric-s2{font-size:.78rem;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.total-card .r-metric-s2{color:#fff}
+.r-metric-d{font-size:.65rem;font-weight:700;margin-top:2px}
+
+/* ── CITY ANOMALY TAB ── */
+.anom-section{margin-bottom:28px}
+.anom-explain{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px 16px;font-size:.78rem;line-height:1.6;color:#5d4037;margin-bottom:16px}
+
+/* ── GRADE DETAIL TABLE ── */
+.grade-detail{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:12px}
+.grade-detail summary{padding:10px 14px;cursor:pointer;font-size:.78rem;font-weight:600;background:var(--surface2);border-bottom:1px solid var(--border);user-select:none}
+
+/* ── COUNT LABEL ── */
+.count-lbl{font-size:.75rem;color:var(--muted);margin-bottom:10px}
+.count-lbl strong{color:var(--text)}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted)}
+.leg-dot{width:9px;height:9px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<script>
+  (function() {
+    const password = prompt("此為內部作業工具，請輸入驗證密碼：");
+    if (password !== "1080310") {
+      alert("密碼錯誤，拒絕存取！");
+      window.location.href = "about:blank"; // 導向空白頁
+    }
+  })();
+</script>
+
+
+<div class="size-bar">
+  <span>字體大小</span>
+  <button class="sz-btn" onclick="setSize(13)">小</button>
+  <button class="sz-btn" onclick="setSize(16)">中</button>
+  <button class="sz-btn" onclick="setSize(19)">大</button>
+  <button class="sz-btn" onclick="setSize(22)">特大</button>
+</div>
+
+<header>
+  <div class="header-top">
+    <div>
+      <h1>國小版對版補充教材 ── 市調分析站</h1>
+      <p>重點複習 × 練習簿 × 語文習寫簿　｜　各轄區縣市來單使用率比較</p>
+    </div>
+    <div>
+      <div class="file-badge">114(一) 1141008止 × 114(二) 1150319止</div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('summary')">📊 整體摘要</div>
+  <div class="tab" onclick="switchTab('region')">🗺 轄區總覽</div>
+  <div class="tab" onclick="switchTab('city')">🏙 縣市明細</div>
+  <div class="tab" onclick="switchTab('anomaly')">⚠️ 異常偵測</div>
+  <div class="tab" onclick="switchTab('dealer')">🏪 經銷商</div>
+</div>
+
+<div class="main">
+
+<!-- ═══ TAB: 整體摘要 ═══ -->
+<div id="panel-summary" class="panel active">
+  <div class="scorecard" id="scorecard"></div>
+  <div class="summary-box" id="summaryText"></div>
+
+  <div class="sec-head">
+    <div class="sec-title">三大產品線 上下學期使用率對照</div>
+    <div class="sec-note">全台合計；使用率 = 來單量 ÷ 教科書來單</div>
+  </div>
+  <div class="tbl-wrap">
+    <table id="productTable"></table>
+  </div>
+</div>
+
+<!-- ═══ TAB: 轄區總覽 ═══ -->
+<div id="panel-region" class="panel">
+  <div class="filter-bar">
+    <label>產品</label>
+    <select id="regionProduct" onchange="renderRegionCards()">
+      <option value="">全部</option>
+      <option>語文習寫簿</option><option>練習簿</option><option>重點複習</option>
+    </select>
+  </div>
+  <div class="region-grid" id="regionGrid"></div>
+</div>
+
+<!-- ═══ TAB: 縣市明細 ═══ -->
+<div id="panel-city" class="panel">
+  <div class="filter-bar">
+    <label>產品</label>
+    <select id="cityProduct" onchange="renderCityTable()">
+      <option value="">全部</option>
+      <option>語文習寫簿</option><option>練習簿</option><option>重點複習</option>
+    </select>
+    <label>轄區</label>
+    <select id="cityRegion" onchange="renderCityTable()">
+      <option value="">全部</option>
+      <option>北一區</option><option>北二區</option><option>北三區</option>
+      <option>桃園區</option><option>桃竹區</option><option>中一區</option>
+      <option>中二區</option><option>雲嘉區</option><option>台南區</option>
+      <option>高一區</option><option>高二區</option>
+    </select>
+    <div class="sort-wrap">
+      <button class="s-btn on" onclick="setCitySort('region')">依轄區</button>
+      <button class="s-btn" onclick="setCitySort('rate_s2_desc')">下學期使用率↓</button>
+      <button class="s-btn" onclick="setCitySort('change_asc')">下降最多</button>
+      <button class="s-btn" onclick="setCitySort('change_desc')">上升最多</button>
+    </div>
+  </div>
+  <div class="count-lbl" id="cityCount"></div>
+  <div class="tbl-wrap">
+    <table id="cityTable"></table>
+  </div>
+</div>
+
+<!-- ═══ TAB: 異常偵測 ═══ -->
+<div id="panel-anomaly" class="panel">
+  <div class="anom-explain">
+    <strong>⚠️ 異常定義：</strong>補充教材為<strong>版版對照</strong>產品，各縣市教科書來單量是該縣市的銷售上限。<br>
+    若某縣市某產品來單量 <strong>&gt; 教科書來單量（使用率 &gt; 100%）</strong>，代表有跨縣市販售或資料異常，需要進一步調查。<br>
+    以下列出所有有此情況的縣市 × 產品組合（依超標幅度排序）。
+  </div>
+
+  <div class="filter-bar">
+    <label>學期</label>
+    <select id="anomSem" onchange="renderAnomalyTable()">
+      <option value="both">上 + 下 任一</option>
+      <option value="s1">上學期 114(一)</option>
+      <option value="s2">下學期 114(二)</option>
+    </select>
+    <label>產品</label>
+    <select id="anomProduct" onchange="renderAnomalyTable()">
+      <option value="">全部</option>
+      <option>語文習寫簿</option><option>練習簿</option><option>重點複習</option>
+    </select>
+  </div>
+
+  <div class="count-lbl" id="anomCount"></div>
+  <div class="tbl-wrap">
+    <table id="anomTable"></table>
+  </div>
+
+  <div style="margin-top:28px">
+    <div class="sec-head">
+      <div class="sec-title">縣市 × 年級 × 產品 明細</div>
+      <div class="sec-note">點擊任一異常列可查看該縣市的年級細節</div>
+    </div>
+    <div id="anomDetail"></div>
+  </div>
+</div>
+
+<!-- ═══ TAB: 經銷商 ═══ -->
+<div id="panel-dealer" class="panel">
+  <div class="filter-bar">
+    <label>轄區</label>
+    <select id="dealerRegion" onchange="renderDealerTable()">
+      <option value="">全部</option>
+      <option>北一區</option><option>北二區</option><option>北三區</option>
+      <option>桃園區</option><option>桃竹區</option><option>中一區</option>
+      <option>中二區</option><option>雲嘉區</option><option>台南區</option>
+      <option>高一區</option><option>高二區</option>
+    </select>
+    <input type="text" id="dealerSearch" placeholder="搜尋經銷商…" oninput="renderDealerTable()">
+    <div class="sort-wrap">
+      <button class="s-btn on" onclick="setDealerSort('region')">依轄區</button>
+      <button class="s-btn" onclick="setDealerSort('lian_dn')">練習簿↓降幅</button>
+      <button class="s-btn" onclick="setDealerSort('zdfl_dn')">重點複習↓降幅</button>
+      <button class="s-btn" onclick="setDealerSort('lian_up')">練習簿↑升幅</button>
+    </div>
+  </div>
+  <div class="count-lbl" id="dealerCount"></div>
+  <div class="tbl-wrap">
+    <table id="dealerTable"></table>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const DATA = {
+city_summary:[{"region":"中一區","product":"練習簿","city":"南投縣L","tb_s1":45202.0,"ord_s1":30512.0,"rate_s1":0.6750,"tb_s2":45202.0,"ord_s2":31848.0,"rate_s2":0.7046,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0296},{"region":"中一區","product":"練習簿","city":"台中縣J","tb_s1":183110.0,"ord_s1":81872.0,"rate_s1":0.4471,"tb_s2":183110.0,"ord_s2":82608.0,"rate_s2":0.4511,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0040},{"region":"中一區","product":"練習簿","city":"苗栗縣I","tb_s1":53784.0,"ord_s1":30840.0,"rate_s1":0.5734,"tb_s2":53784.0,"ord_s2":28653.0,"rate_s2":0.5327,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0407},{"region":"中一區","product":"語文習寫簿","city":"南投縣L","tb_s1":12322.0,"ord_s1":4742.0,"rate_s1":0.3848,"tb_s2":12322.0,"ord_s2":5049.0,"rate_s2":0.4097,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0249},{"region":"中一區","product":"語文習寫簿","city":"台中縣J","tb_s1":52282.0,"ord_s1":27052.0,"rate_s1":0.5176,"tb_s2":52282.0,"ord_s2":28394.0,"rate_s2":0.5432,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0256},{"region":"中一區","product":"語文習寫簿","city":"苗栗縣I","tb_s1":14706.0,"ord_s1":9166.0,"rate_s1":0.6233,"tb_s2":14706.0,"ord_s2":9527.0,"rate_s2":0.6479,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0246},{"region":"中一區","product":"重點複習","city":"南投縣L","tb_s1":44490.0,"ord_s1":14804.0,"rate_s1":0.3328,"tb_s2":44490.0,"ord_s2":15580.0,"rate_s2":0.3502,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0174},{"region":"中一區","product":"重點複習","city":"台中縣J","tb_s1":183110.0,"ord_s1":44524.0,"rate_s1":0.2431,"tb_s2":183110.0,"ord_s2":46360.0,"rate_s2":0.2531,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0100},{"region":"中一區","product":"重點複習","city":"苗栗縣I","tb_s1":33295.0,"ord_s1":9494.0,"rate_s1":0.2852,"tb_s2":33295.0,"ord_s2":9624.0,"rate_s2":0.2890,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0038},{"region":"中二區","product":"練習簿","city":"彰化縣M","tb_s1":213268.0,"ord_s1":99527.0,"rate_s1":0.4666,"tb_s2":213268.0,"ord_s2":90204.0,"rate_s2":0.4230,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0436},{"region":"中二區","product":"練習簿","city":"台中市K","tb_s1":275400.0,"ord_s1":46874.0,"rate_s1":0.1702,"tb_s2":275400.0,"ord_s2":43462.0,"rate_s2":0.1578,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0124},{"region":"中二區","product":"語文習寫簿","city":"彰化縣M","tb_s1":69476.0,"ord_s1":23556.0,"rate_s1":0.3391,"tb_s2":69476.0,"ord_s2":24276.0,"rate_s2":0.3494,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0103},{"region":"中二區","product":"語文習寫簿","city":"台中市K","tb_s1":70908.0,"ord_s1":10204.0,"rate_s1":0.1439,"tb_s2":70908.0,"ord_s2":9158.0,"rate_s2":0.1291,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0148},{"region":"中二區","product":"重點複習","city":"彰化縣M","tb_s1":213268.0,"ord_s1":55168.0,"rate_s1":0.2587,"tb_s2":213268.0,"ord_s2":51750.0,"rate_s2":0.2427,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0160},{"region":"中二區","product":"重點複習","city":"台中市K","tb_s1":275400.0,"ord_s1":22822.0,"rate_s1":0.0829,"tb_s2":275400.0,"ord_s2":22041.0,"rate_s2":0.0800,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0029},{"region":"北一區","product":"練習簿","city":"台北市A","tb_s1":75063.0,"ord_s1":36030.0,"rate_s1":0.4800,"tb_s2":75063.0,"ord_s2":37434.0,"rate_s2":0.4987,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0187},{"region":"北一區","product":"練習簿","city":"花蓮縣U","tb_s1":8617.0,"ord_s1":5573.0,"rate_s1":0.6467,"tb_s2":8617.0,"ord_s2":4786.0,"rate_s2":0.5553,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0914},{"region":"北一區","product":"語文習寫簿","city":"台北市A","tb_s1":75063.0,"ord_s1":5454.0,"rate_s1":0.0727,"tb_s2":75063.0,"ord_s2":6873.0,"rate_s2":0.0916,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0189},{"region":"北一區","product":"語文習寫簿","city":"花蓮縣U","tb_s1":9000.0,"ord_s1":7591.0,"rate_s1":0.8434,"tb_s2":9000.0,"ord_s2":7858.0,"rate_s2":0.8731,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0297},{"region":"北一區","product":"重點複習","city":"台北市A","tb_s1":75063.0,"ord_s1":71364.0,"rate_s1":0.9507,"tb_s2":75063.0,"ord_s2":72460.0,"rate_s2":0.9654,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0147},{"region":"北一區","product":"重點複習","city":"花蓮縣U","tb_s1":9000.0,"ord_s1":12879.0,"rate_s1":1.4310,"tb_s2":9000.0,"ord_s2":12891.0,"rate_s2":1.4323,"anomaly_s1":true,"anomaly_s2":true,"rate_change":0.0013},{"region":"北三區","product":"練習簿","city":"宜蘭縣D","tb_s1":42432.0,"ord_s1":14547.0,"rate_s1":0.3429,"tb_s2":42432.0,"ord_s2":14476.0,"rate_s2":0.3412,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0017},{"region":"北三區","product":"練習簿","city":"新北市E","tb_s1":217062.0,"ord_s1":31283.0,"rate_s1":0.1441,"tb_s2":217062.0,"ord_s2":29413.0,"rate_s2":0.1355,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0086},{"region":"北三區","product":"語文習寫簿","city":"宜蘭縣D","tb_s1":16680.0,"ord_s1":10636.0,"rate_s1":0.6377,"tb_s2":16680.0,"ord_s2":8694.0,"rate_s2":0.5213,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.1164},{"region":"北三區","product":"語文習寫簿","city":"新北市E","tb_s1":62232.0,"ord_s1":4131.0,"rate_s1":0.0664,"tb_s2":62232.0,"ord_s2":4780.0,"rate_s2":0.0768,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0104},{"region":"北三區","product":"重點複習","city":"宜蘭縣D","tb_s1":42432.0,"ord_s1":9967.0,"rate_s1":0.2349,"tb_s2":42432.0,"ord_s2":9787.0,"rate_s2":0.2307,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0042},{"region":"北三區","product":"重點複習","city":"新北市E","tb_s1":217062.0,"ord_s1":22897.0,"rate_s1":0.1055,"tb_s2":217062.0,"ord_s2":23128.0,"rate_s2":0.1066,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0011},{"region":"北二區","product":"練習簿","city":"基隆市C","tb_s1":23172.0,"ord_s1":18088.0,"rate_s1":0.7806,"tb_s2":23172.0,"ord_s2":17929.0,"rate_s2":0.7738,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0068},{"region":"北二區","product":"練習簿","city":"新北市E","tb_s1":227436.0,"ord_s1":48231.0,"rate_s1":0.2121,"tb_s2":227436.0,"ord_s2":46610.0,"rate_s2":0.2049,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0072},{"region":"北二區","product":"語文習寫簿","city":"基隆市C","tb_s1":9708.0,"ord_s1":8649.0,"rate_s1":0.8909,"tb_s2":9708.0,"ord_s2":8740.0,"rate_s2":0.9003,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0094},{"region":"北二區","product":"語文習寫簿","city":"新北市E","tb_s1":68378.0,"ord_s1":6353.0,"rate_s1":0.0929,"tb_s2":68378.0,"ord_s2":6576.0,"rate_s2":0.0962,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0033},{"region":"北二區","product":"重點複習","city":"基隆市C","tb_s1":23172.0,"ord_s1":25534.0,"rate_s1":1.1019,"tb_s2":23172.0,"ord_s2":23748.0,"rate_s2":1.0248,"anomaly_s1":true,"anomaly_s2":true,"rate_change":-0.0771},{"region":"北二區","product":"重點複習","city":"新北市E","tb_s1":227436.0,"ord_s1":21753.0,"rate_s1":0.0957,"tb_s2":227436.0,"ord_s2":25079.0,"rate_s2":0.1103,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0146},{"region":"台南區","product":"練習簿","city":"台南市R","tb_s1":130788.0,"ord_s1":28474.0,"rate_s1":0.2177,"tb_s2":130788.0,"ord_s2":28019.0,"rate_s2":0.2142,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0035},{"region":"台南區","product":"練習簿","city":"台南縣Q","tb_s1":113460.0,"ord_s1":23106.0,"rate_s1":0.2036,"tb_s2":113460.0,"ord_s2":21826.0,"rate_s2":0.1924,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0112},{"region":"台南區","product":"語文習寫簿","city":"台南市R","tb_s1":34380.0,"ord_s1":13148.0,"rate_s1":0.3824,"tb_s2":34380.0,"ord_s2":14082.0,"rate_s2":0.4096,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0272},{"region":"台南區","product":"語文習寫簿","city":"台南縣Q","tb_s1":31240.0,"ord_s1":11700.0,"rate_s1":0.3746,"tb_s2":31240.0,"ord_s2":11259.0,"rate_s2":0.3605,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0141},{"region":"台南區","product":"語文習寫簿","city":"台南市R","tb_s1":34380.0,"ord_s1":14921.0,"rate_s1":1.0226,"tb_s2":34380.0,"ord_s2":14521.0,"rate_s2":1.0318,"anomaly_s1":true,"anomaly_s2":true,"rate_change":0.0092},{"region":"台南區","product":"重點複習","city":"台南市R","tb_s1":130788.0,"ord_s1":26468.0,"rate_s1":0.2024,"tb_s2":130788.0,"ord_s2":26638.0,"rate_s2":0.2036,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0012},{"region":"台南區","product":"重點複習","city":"台南縣Q","tb_s1":113460.0,"ord_s1":18994.0,"rate_s1":0.1674,"tb_s2":113460.0,"ord_s2":19062.0,"rate_s2":0.1680,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0006},{"region":"桃園區","product":"練習簿","city":"桃園縣F","tb_s1":301464.0,"ord_s1":69741.0,"rate_s1":0.2313,"tb_s2":301464.0,"ord_s2":68415.0,"rate_s2":0.2269,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0044},{"region":"桃園區","product":"語文習寫簿","city":"桃園縣F","tb_s1":79388.0,"ord_s1":23281.0,"rate_s1":0.2932,"tb_s2":79388.0,"ord_s2":25200.0,"rate_s2":0.3173,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0241},{"region":"桃園區","product":"重點複習","city":"桃園縣F","tb_s1":301464.0,"ord_s1":33440.0,"rate_s1":0.1109,"tb_s2":301464.0,"ord_s2":31681.0,"rate_s2":0.1051,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0058},{"region":"桃竹區","product":"練習簿","city":"新竹市H","tb_s1":116318.0,"ord_s1":26847.0,"rate_s1":0.2308,"tb_s2":116318.0,"ord_s2":29096.0,"rate_s2":0.2501,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0193},{"region":"桃竹區","product":"練習簿","city":"新竹縣G","tb_s1":100898.0,"ord_s1":26488.0,"rate_s1":0.2626,"tb_s2":100898.0,"ord_s2":27086.0,"rate_s2":0.2685,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0059},{"region":"桃竹區","product":"練習簿","city":"桃園縣F","tb_s1":285064.0,"ord_s1":38248.0,"rate_s1":0.1342,"tb_s2":285064.0,"ord_s2":35634.0,"rate_s2":0.1250,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0092},{"region":"桃竹區","product":"語文習寫簿","city":"新竹市H","tb_s1":33736.0,"ord_s1":11236.0,"rate_s1":1.1113,"tb_s2":33736.0,"ord_s2":9854.0,"rate_s2":0.9308,"anomaly_s1":true,"anomaly_s2":false,"rate_change":-0.1805},{"region":"桃竹區","product":"語文習寫簿","city":"新竹縣G","tb_s1":28566.0,"ord_s1":8625.0,"rate_s1":0.3020,"tb_s2":28566.0,"ord_s2":8520.0,"rate_s2":0.2982,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0038},{"region":"桃竹區","product":"語文習寫簿","city":"桃園縣F","tb_s1":79388.0,"ord_s1":18376.0,"rate_s1":0.2314,"tb_s2":79388.0,"ord_s2":17200.0,"rate_s2":0.2167,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0147},{"region":"桃竹區","product":"重點複習","city":"新竹市H","tb_s1":116318.0,"ord_s1":8847.0,"rate_s1":0.0761,"tb_s2":116318.0,"ord_s2":10110.0,"rate_s2":0.0869,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0108},{"region":"桃竹區","product":"重點複習","city":"新竹縣G","tb_s1":100898.0,"ord_s1":13162.0,"rate_s1":0.1305,"tb_s2":100898.0,"ord_s2":13868.0,"rate_s2":0.1375,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0070},{"region":"桃竹區","product":"重點複習","city":"桃園縣F","tb_s1":285064.0,"ord_s1":29164.0,"rate_s1":0.1023,"tb_s2":285064.0,"ord_s2":29442.0,"rate_s2":0.1033,"anomaly_s1":false,"anomaly_s2":false,"rate_change":0.0010},{"region":"雲嘉區","product":"練習簿","city":"嘉義市P","tb_s1":45276.0,"ord_s1":7518.0,"rate_s1":0.1660,"tb_s2":45276.0,"ord_s2":7408.0,"rate_s2":0.1636,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0024},{"region":"雲嘉區","product":"練習簿","city":"嘉義縣O","tb_s1":74778.0,"ord_s1":17696.0,"rate_s1":0.2366,"tb_s2":74778.0,"ord_s2":16524.0,"rate_s2":0.2210,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0156},{"region":"雲嘉區","product":"練習簿","city":"雲林縣N","tb_s1":118410.0,"ord_s1":24492.0,"rate_s1":0.2068,"tb_s2":118410.0,"ord_s2":22042.0,"rate_s2":0.1861,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0207},{"region":"雲嘉區","product":"語文習寫簿","city":"嘉義市P","tb_s1":13164.0,"ord_s1":4116.0,"rate_s1":0.3126,"tb_s2":13164.0,"ord_s2":3788.0,"rate_s2":0.2878,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0248},{"region":"雲嘉區","product":"語文習寫簿","city":"嘉義縣O","tb_s1":21492.0,"ord_s1":7474.0,"rate_s1":1.3477,"tb_s2":21492.0,"ord_s2":6672.0,"rate_s2":0.3105,"anomaly_s1":true,"anomaly_s2":false,"rate_change":-1.0372},{"region":"雲嘉區","product":"語文習寫簿","city":"雲林縣N","tb_s1":33828.0,"ord_s1":10708.0,"rate_s1":0.3165,"tb_s2":33828.0,"ord_s2":10347.0,"rate_s2":0.3058,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0107},{"region":"雲嘉區","product":"重點複習","city":"嘉義市P","tb_s1":45276.0,"ord_s1":3844.0,"rate_s1":0.0849,"tb_s2":45276.0,"ord_s2":3822.0,"rate_s2":0.0844,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0005},{"region":"雲嘉區","product":"重點複習","city":"嘉義縣O","tb_s1":74778.0,"ord_s1":8476.0,"rate_s1":0.1134,"tb_s2":74778.0,"ord_s2":7814.0,"rate_s2":0.1045,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0089},{"region":"雲嘉區","product":"重點複習","city":"雲林縣N","tb_s1":118410.0,"ord_s1":14674.0,"rate_s1":0.1239,"tb_s2":118410.0,"ord_s2":14655.0,"rate_s2":0.1237,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0002},{"region":"高一區","product":"練習簿","city":"屏東縣T","tb_s1":132672.0,"ord_s1":29682.0,"rate_s1":0.2237,"tb_s2":132672.0,"ord_s2":27340.0,"rate_s2":0.2061,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0176},{"region":"高一區","product":"練習簿","city":"高雄縣S","tb_s1":232746.0,"ord_s1":32895.0,"rate_s1":0.1413,"tb_s2":232746.0,"ord_s2":31333.0,"rate_s2":0.1346,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0067},{"region":"高一區","product":"語文習寫簿","city":"屏東縣T","tb_s1":37164.0,"ord_s1":12020.0,"rate_s1":0.3234,"tb_s2":37164.0,"ord_s2":11644.0,"rate_s2":0.3133,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0101},{"region":"高一區","product":"語文習寫簿","city":"高雄縣S","tb_s1":66024.0,"ord_s1":14027.0,"rate_s1":1.0187,"tb_s2":66024.0,"ord_s2":14393.0,"rate_s2":0.9786,"anomaly_s1":true,"anomaly_s2":false,"rate_change":-0.0401},{"region":"高一區","product":"重點複習","city":"屏東縣T","tb_s1":132672.0,"ord_s1":16084.0,"rate_s1":0.1212,"tb_s2":132672.0,"ord_s2":14712.0,"rate_s2":0.1109,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0103},{"region":"高一區","product":"重點複習","city":"高雄縣S","tb_s1":232746.0,"ord_s1":23520.0,"rate_s1":0.1011,"tb_s2":232746.0,"ord_s2":22572.0,"rate_s2":0.0970,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0041},{"region":"高二區","product":"練習簿","city":"台東縣V","tb_s1":27390.0,"ord_s1":7194.0,"rate_s1":0.2627,"tb_s2":27390.0,"ord_s2":7079.0,"rate_s2":0.2585,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0042},{"region":"高二區","product":"練習簿","city":"澎湖縣W","tb_s1":11268.0,"ord_s1":3232.0,"rate_s1":0.2868,"tb_s2":11268.0,"ord_s2":3181.0,"rate_s2":0.2824,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0044},{"region":"高二區","product":"練習簿","city":"高雄市B","tb_s1":352380.0,"ord_s1":53560.0,"rate_s1":0.1519,"tb_s2":352380.0,"ord_s2":52719.0,"rate_s2":0.1496,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0023},{"region":"高二區","product":"語文習寫簿","city":"台東縣V","tb_s1":7800.0,"ord_s1":6036.0,"rate_s1":0.7739,"tb_s2":7800.0,"ord_s2":5868.0,"rate_s2":0.7523,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0216},{"region":"高二區","product":"語文習寫簿","city":"澎湖縣W","tb_s1":3252.0,"ord_s1":2298.0,"rate_s1":0.7066,"tb_s2":3252.0,"ord_s2":2238.0,"rate_s2":0.6881,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0185},{"region":"高二區","product":"語文習寫簿","city":"高雄市B","tb_s1":100596.0,"ord_s1":12779.0,"rate_s1":1.0208,"tb_s2":100596.0,"ord_s2":12671.0,"rate_s2":1.0000,"anomaly_s1":true,"anomaly_s2":false,"rate_change":-0.0208},{"region":"高二區","product":"重點複習","city":"台東縣V","tb_s1":27390.0,"ord_s1":8396.0,"rate_s1":0.3066,"tb_s2":27390.0,"ord_s2":8162.0,"rate_s2":0.2980,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0086},{"region":"高二區","product":"重點複習","city":"澎湖縣W","tb_s1":11268.0,"ord_s1":3384.0,"rate_s1":0.3003,"tb_s2":11268.0,"ord_s2":3344.0,"rate_s2":0.2968,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0035},{"region":"高二區","product":"重點複習","city":"高雄市B","tb_s1":352380.0,"ord_s1":38733.0,"rate_s1":0.1099,"tb_s2":352380.0,"ord_s2":38139.0,"rate_s2":0.1083,"anomaly_s1":false,"anomaly_s2":false,"rate_change":-0.0016}],
+
+region_summary:[{"region":"中一區","product":"練習簿","tb_s1":282096.0,"ord_s1":143224.0,"rate_s1":0.5077,"tb_s2":282096.0,"ord_s2":143109.0,"rate_s2":0.5073},{"region":"中一區","product":"語文習寫簿","tb_s1":79310.0,"ord_s1":40960.0,"rate_s1":0.5165,"tb_s2":79310.0,"ord_s2":42970.0,"rate_s2":0.5418},{"region":"中一區","product":"重點複習","tb_s1":260895.0,"ord_s1":68822.0,"rate_s1":0.2638,"tb_s2":260895.0,"ord_s2":71564.0,"rate_s2":0.2743},{"region":"中二區","product":"練習簿","tb_s1":488668.0,"ord_s1":146401.0,"rate_s1":0.2996,"tb_s2":488668.0,"ord_s2":133666.0,"rate_s2":0.2736},{"region":"中二區","product":"語文習寫簿","tb_s1":140384.0,"ord_s1":33760.0,"rate_s1":0.2405,"tb_s2":140384.0,"ord_s2":33434.0,"rate_s2":0.2382},{"region":"中二區","product":"重點複習","tb_s1":488668.0,"ord_s1":77990.0,"rate_s1":0.1596,"tb_s2":488668.0,"ord_s2":73791.0,"rate_s2":0.1510},{"region":"北一區","product":"練習簿","tb_s1":83680.0,"ord_s1":41603.0,"rate_s1":0.4971,"tb_s2":83680.0,"ord_s2":42220.0,"rate_s2":0.5046},{"region":"北一區","product":"語文習寫簿","tb_s1":84063.0,"ord_s1":13045.0,"rate_s1":0.1552,"tb_s2":84063.0,"ord_s2":14731.0,"rate_s2":0.1752},{"region":"北一區","product":"重點複習","tb_s1":84063.0,"ord_s1":84243.0,"rate_s1":1.0021,"tb_s2":84063.0,"ord_s2":85351.0,"rate_s2":1.0153},{"region":"北三區","product":"練習簿","tb_s1":259494.0,"ord_s1":45830.0,"rate_s1":0.1766,"tb_s2":259494.0,"ord_s2":43889.0,"rate_s2":0.1691},{"region":"北三區","product":"語文習寫簿","tb_s1":78912.0,"ord_s1":14767.0,"rate_s1":0.1872,"tb_s2":78912.0,"ord_s2":13474.0,"rate_s2":0.1708},{"region":"北三區","product":"重點複習","tb_s1":259494.0,"ord_s1":32864.0,"rate_s1":0.1267,"tb_s2":259494.0,"ord_s2":32915.0,"rate_s2":0.1269},{"region":"北二區","product":"練習簿","tb_s1":250608.0,"ord_s1":66319.0,"rate_s1":0.2647,"tb_s2":250608.0,"ord_s2":64539.0,"rate_s2":0.2576},{"region":"北二區","product":"語文習寫簿","tb_s1":78086.0,"ord_s1":15002.0,"rate_s1":0.1921,"tb_s2":78086.0,"ord_s2":15316.0,"rate_s2":0.1962},{"region":"北二區","product":"重點複習","tb_s1":250608.0,"ord_s1":47287.0,"rate_s1":0.1887,"tb_s2":250608.0,"ord_s2":48827.0,"rate_s2":0.1948},{"region":"台南區","product":"練習簿","tb_s1":244248.0,"ord_s1":51580.0,"rate_s1":0.2112,"tb_s2":244248.0,"ord_s2":49845.0,"rate_s2":0.2040},{"region":"台南區","product":"語文習寫簿","tb_s1":65620.0,"ord_s1":29714.0,"rate_s1":0.4527,"tb_s2":65620.0,"ord_s2":29441.0,"rate_s2":0.4487},{"region":"台南區","product":"重點複習","tb_s1":244248.0,"ord_s1":45462.0,"rate_s1":0.1861,"tb_s2":244248.0,"ord_s2":45700.0,"rate_s2":0.1871},{"region":"桃園區","product":"練習簿","tb_s1":301464.0,"ord_s1":69741.0,"rate_s1":0.2313,"tb_s2":301464.0,"ord_s2":68415.0,"rate_s2":0.2269},{"region":"桃園區","product":"語文習寫簿","tb_s1":79388.0,"ord_s1":23281.0,"rate_s1":0.2932,"tb_s2":79388.0,"ord_s2":25200.0,"rate_s2":0.3173},{"region":"桃園區","product":"重點複習","tb_s1":301464.0,"ord_s1":33440.0,"rate_s1":0.1109,"tb_s2":301464.0,"ord_s2":31681.0,"rate_s2":0.1051},{"region":"桃竹區","product":"練習簿","tb_s1":502280.0,"ord_s1":91583.0,"rate_s1":0.1824,"tb_s2":502280.0,"ord_s2":91816.0,"rate_s2":0.1828},{"region":"桃竹區","product":"語文習寫簿","tb_s1":141690.0,"ord_s1":38237.0,"rate_s1":0.2699,"tb_s2":141690.0,"ord_s2":35574.0,"rate_s2":0.2511},{"region":"桃竹區","product":"重點複習","tb_s1":502280.0,"ord_s1":51173.0,"rate_s1":0.1019,"tb_s2":502280.0,"ord_s2":53420.0,"rate_s2":0.1064},{"region":"雲嘉區","product":"練習簿","tb_s1":238464.0,"ord_s1":49706.0,"rate_s1":0.2084,"tb_s2":238464.0,"ord_s2":45974.0,"rate_s2":0.1928},{"region":"雲嘉區","product":"語文習寫簿","tb_s1":67484.0,"ord_s1":22298.0,"rate_s1":0.3304,"tb_s2":67484.0,"ord_s2":20807.0,"rate_s2":0.3083},{"region":"雲嘉區","product":"重點複習","tb_s1":238464.0,"ord_s1":26994.0,"rate_s1":0.1132,"tb_s2":238464.0,"ord_s2":26291.0,"rate_s2":0.1103},{"region":"高一區","product":"練習簿","tb_s1":365418.0,"ord_s1":62577.0,"rate_s1":0.1712,"tb_s2":365418.0,"ord_s2":58673.0,"rate_s2":0.1605},{"region":"高一區","product":"語文習寫簿","tb_s1":103188.0,"ord_s1":26047.0,"rate_s1":0.2524,"tb_s2":103188.0,"ord_s2":26037.0,"rate_s2":0.2523},{"region":"高一區","product":"重點複習","tb_s1":365418.0,"ord_s1":39604.0,"rate_s1":0.1083,"tb_s2":365418.0,"ord_s2":37284.0,"rate_s2":0.1020},{"region":"高二區","product":"練習簿","tb_s1":391038.0,"ord_s1":63986.0,"rate_s1":0.1636,"tb_s2":391038.0,"ord_s2":62979.0,"rate_s2":0.1611},{"region":"高二區","product":"語文習寫簿","tb_s1":111648.0,"ord_s1":21113.0,"rate_s1":0.1891,"tb_s2":111648.0,"ord_s2":20777.0,"rate_s2":0.1861},{"region":"高二區","product":"重點複習","tb_s1":391038.0,"ord_s1":50513.0,"rate_s1":0.1292,"tb_s2":391038.0,"ord_s2":49645.0,"rate_s2":0.1270}]
+};
+
+const DEALER_DATA = [
+  {region:"中一區",dealer:"今益",zone:143,lian_s1:30.0,lian_s2:30.0,lian_ch:0.0,zdfl_s1:9.5,zdfl_s2:11.3,zdfl_ch:1.8},
+  {region:"中一區",dealer:"國益",zone:143,lian_s1:47.3,lian_s2:44.2,lian_ch:-3.1,zdfl_s1:21.0,zdfl_s2:22.3,zdfl_ch:1.3},
+  {region:"中一區",dealer:"峻安",zone:143,lian_s1:53.3,lian_s2:60.8,lian_ch:7.5,zdfl_s1:26.8,zdfl_s2:28.9,zdfl_ch:2.1},
+  {region:"中一區",dealer:"明衡",zone:143,lian_s1:95.5,lian_s2:84.8,lian_ch:-10.7,zdfl_s1:33.5,zdfl_s2:34.7,zdfl_ch:1.2},
+  {region:"中一區",dealer:"智達文化",zone:143,lian_s1:50.4,lian_s2:52.1,lian_ch:1.7,zdfl_s1:27.5,zdfl_s2:30.0,zdfl_ch:2.5},
+  {region:"中一區",dealer:"有誠",zone:143,lian_s1:192.1,lian_s2:191.2,lian_ch:-0.9,zdfl_s1:71.8,zdfl_s2:71.1,zdfl_ch:-0.7},
+  {region:"中一區",dealer:"達康",zone:143,lian_s1:47.3,lian_s2:50.5,lian_ch:3.1,zdfl_s1:25.0,zdfl_s2:27.1,zdfl_ch:2.0},
+  {region:"中二區",dealer:"巧耕",zone:144,lian_s1:53.9,lian_s2:53.6,lian_ch:-0.3,zdfl_s1:23.1,zdfl_s2:23.3,zdfl_ch:0.1},
+  {region:"中二區",dealer:"師生文化",zone:144,lian_s1:60.7,lian_s2:56.3,lian_ch:-4.4,zdfl_s1:38.3,zdfl_s2:39.3,zdfl_ch:1.0},
+  {region:"中二區",dealer:"建大",zone:144,lian_s1:91.1,lian_s2:84.7,lian_ch:-6.4,zdfl_s1:37.2,zdfl_s2:40.5,zdfl_ch:3.3},
+  {region:"中二區",dealer:"旭立",zone:144,lian_s1:60.4,lian_s2:50.3,lian_ch:-10.1,zdfl_s1:38.2,zdfl_s2:32.1,zdfl_ch:-6.0},
+  {region:"中二區",dealer:"橙鑫",zone:144,lian_s1:60.4,lian_s2:63.0,lian_ch:2.6,zdfl_s1:37.2,zdfl_s2:39.4,zdfl_ch:2.2},
+  {region:"中二區",dealer:"欣欣",zone:144,lian_s1:73.3,lian_s2:73.8,lian_ch:0.5,zdfl_s1:28.3,zdfl_s2:28.6,zdfl_ch:0.3},
+  {region:"中二區",dealer:"育儒",zone:144,lian_s1:75.3,lian_s2:76.2,lian_ch:0.9,zdfl_s1:39.9,zdfl_s2:40.9,zdfl_ch:1.0},
+  {region:"中二區",dealer:"英博",zone:144,lian_s1:85.8,lian_s2:87.1,lian_ch:1.3,zdfl_s1:33.6,zdfl_s2:36.0,zdfl_ch:2.4},
+  {region:"北一區",dealer:"儒心",zone:123,lian_s1:40.8,lian_s2:42.6,lian_ch:1.7,zdfl_s1:22.5,zdfl_s2:22.5,zdfl_ch:-0.0},
+  {region:"北一區",dealer:"君浩",zone:123,lian_s1:50.5,lian_s2:46.7,lian_ch:-3.8,zdfl_s1:28.3,zdfl_s2:21.7,zdfl_ch:-6.6},
+  {region:"北一區",dealer:"康才",zone:123,lian_s1:35.4,lian_s2:34.6,lian_ch:-0.8,zdfl_s1:31.7,zdfl_s2:33.9,zdfl_ch:2.2},
+  {region:"北一區",dealer:"旭儒",zone:123,lian_s1:29.3,lian_s2:31.6,lian_ch:2.2,zdfl_s1:39.3,zdfl_s2:37.9,zdfl_ch:-1.4},
+  {region:"北一區",dealer:"晟樺",zone:123,lian_s1:38.5,lian_s2:35.5,lian_ch:-3.0,zdfl_s1:26.1,zdfl_s2:26.0,zdfl_ch:-0.1},
+  {region:"北一區",dealer:"正利文教",zone:123,lian_s1:39.1,lian_s2:39.6,lian_ch:0.5,zdfl_s1:28.5,zdfl_s2:29.3,zdfl_ch:0.8},
+  {region:"北一區",dealer:"正欣文教",zone:123,lian_s1:33.2,lian_s2:33.2,lian_ch:0.1,zdfl_s1:26.4,zdfl_s2:27.4,zdfl_ch:1.0},
+  {region:"北三區",dealer:"中庸",zone:125,lian_s1:32.5,lian_s2:30.9,lian_ch:-1.6,zdfl_s1:24.2,zdfl_s2:26.6,zdfl_ch:2.4},
+  {region:"北三區",dealer:"喬宥",zone:125,lian_s1:40.8,lian_s2:39.3,lian_ch:-1.5,zdfl_s1:21.9,zdfl_s2:21.7,zdfl_ch:-0.2},
+  {region:"北三區",dealer:"宇樂",zone:125,lian_s1:15.3,lian_s2:15.0,lian_ch:-0.3,zdfl_s1:16.3,zdfl_s2:16.3,zdfl_ch:-0.0},
+  {region:"北三區",dealer:"川禾文教",zone:125,lian_s1:19.0,lian_s2:17.9,lian_ch:-1.1,zdfl_s1:18.8,zdfl_s2:18.8,zdfl_ch:0.0},
+  {region:"北三區",dealer:"新北光合(君)",zone:125,lian_s1:20.4,lian_s2:17.5,lian_ch:-3.0,zdfl_s1:12.5,zdfl_s2:11.0,zdfl_ch:-1.5},
+  {region:"北三區",dealer:"金格學",zone:125,lian_s1:20.9,lian_s2:19.0,lian_ch:-1.9,zdfl_s1:7.5,zdfl_s2:8.5,zdfl_ch:1.0},
+  {region:"北二區",dealer:"光合(北二)",zone:124,lian_s1:2.2,lian_s2:1.6,lian_ch:-0.6,zdfl_s1:1.3,zdfl_s2:1.0,zdfl_ch:-0.3},
+  {region:"北二區",dealer:"學林",zone:124,lian_s1:17.9,lian_s2:22.5,lian_ch:4.6,zdfl_s1:5.6,zdfl_s2:7.2,zdfl_ch:1.6},
+  {region:"北二區",dealer:"宏儒",zone:124,lian_s1:20.8,lian_s2:20.0,lian_ch:-0.8,zdfl_s1:23.0,zdfl_s2:22.2,zdfl_ch:-0.8},
+  {region:"北二區",dealer:"弘大",zone:124,lian_s1:61.8,lian_s2:59.3,lian_ch:-2.4,zdfl_s1:31.5,zdfl_s2:32.1,zdfl_ch:0.7},
+  {region:"北二區",dealer:"楷今",zone:124,lian_s1:24.8,lian_s2:28.8,lian_ch:4.0,zdfl_s1:21.7,zdfl_s2:31.4,zdfl_ch:9.7},
+  {region:"北二區",dealer:"漢唐文化",zone:124,lian_s1:8.9,lian_s2:7.1,lian_ch:-1.8,zdfl_s1:11.8,zdfl_s2:10.7,zdfl_ch:-1.1},
+  {region:"台南區",dealer:"國連",zone:152,lian_s1:42.3,lian_s2:42.6,lian_ch:0.3,zdfl_s1:37.7,zdfl_s2:38.4,zdfl_ch:0.7},
+  {region:"台南區",dealer:"崇善",zone:152,lian_s1:38.4,lian_s2:36.5,lian_ch:-2.0,zdfl_s1:41.0,zdfl_s2:40.9,zdfl_ch:-0.2},
+  {region:"台南區",dealer:"弘志",zone:152,lian_s1:77.5,lian_s2:78.1,lian_ch:0.6,zdfl_s1:24.3,zdfl_s2:21.9,zdfl_ch:-2.3},
+  {region:"台南區",dealer:"新麗",zone:152,lian_s1:38.9,lian_s2:37.2,lian_ch:-1.7,zdfl_s1:33.0,zdfl_s2:34.1,zdfl_ch:1.2},
+  {region:"台南區",dealer:"金榜",zone:152,lian_s1:55.0,lian_s2:52.3,lian_ch:-2.7,zdfl_s1:35.3,zdfl_s2:35.1,zdfl_ch:-0.2},
+  {region:"桃園區",dealer:"上益(合益)",zone:133,lian_s1:91.2,lian_s2:74.5,lian_ch:-16.7,zdfl_s1:44.2,zdfl_s2:43.9,zdfl_ch:-0.3},
+  {region:"桃園區",dealer:"賸鑫文教",zone:133,lian_s1:45.3,lian_s2:44.1,lian_ch:-1.2,zdfl_s1:20.2,zdfl_s2:19.6,zdfl_ch:-0.6},
+  {region:"桃竹區",dealer:"乾程",zone:134,lian_s1:54.5,lian_s2:56.0,lian_ch:1.5,zdfl_s1:38.7,zdfl_s2:38.1,zdfl_ch:-0.6},
+  {region:"桃竹區",dealer:"博識",zone:134,lian_s1:44.8,lian_s2:43.0,lian_ch:-1.8,zdfl_s1:6.7,zdfl_s2:7.6,zdfl_ch:0.9},
+  {region:"桃竹區",dealer:"康順",zone:134,lian_s1:40.1,lian_s2:42.1,lian_ch:2.0,zdfl_s1:12.0,zdfl_s2:15.3,zdfl_ch:3.3},
+  {region:"桃竹區",dealer:"廣承",zone:134,lian_s1:69.7,lian_s2:69.2,lian_ch:-0.4,zdfl_s1:21.4,zdfl_s2:23.6,zdfl_ch:2.1},
+  {region:"桃竹區",dealer:"陽光書坊",zone:134,lian_s1:46.8,lian_s2:44.8,lian_ch:-2.0,zdfl_s1:26.9,zdfl_s2:28.6,zdfl_ch:1.8},
+  {region:"高一區",dealer:"均盈",zone:163,lian_s1:33.9,lian_s2:31.6,lian_ch:-2.3,zdfl_s1:15.3,zdfl_s2:15.1,zdfl_ch:-0.2},
+  {region:"高一區",dealer:"學悅(南興)",zone:163,lian_s1:37.0,lian_s2:36.2,lian_ch:-0.8,zdfl_s1:29.6,zdfl_s2:30.2,zdfl_ch:0.5},
+  {region:"高一區",dealer:"康盟",zone:163,lian_s1:32.1,lian_s2:18.1,lian_ch:-14.0,zdfl_s1:55.3,zdfl_s2:36.0,zdfl_ch:-19.3},
+  {region:"高一區",dealer:"甲群",zone:163,lian_s1:46.7,lian_s2:43.2,lian_ch:-3.6,zdfl_s1:37.8,zdfl_s2:35.0,zdfl_ch:-2.8},
+  {region:"高一區",dealer:"益昌興",zone:163,lian_s1:54.8,lian_s2:55.0,lian_ch:0.2,zdfl_s1:29.9,zdfl_s2:25.3,zdfl_ch:-4.6},
+  {region:"高二區",dealer:"一軒",zone:164,lian_s1:28.1,lian_s2:27.9,lian_ch:-0.2,zdfl_s1:29.0,zdfl_s2:28.0,zdfl_ch:-1.0},
+  {region:"高二區",dealer:"三盟",zone:164,lian_s1:139.4,lian_s2:90.4,lian_ch:-49.0,zdfl_s1:111.1,zdfl_s2:96.5,zdfl_ch:-14.6},
+  {region:"高二區",dealer:"合和教育",zone:164,lian_s1:57.7,lian_s2:56.2,lian_ch:-1.6,zdfl_s1:18.2,zdfl_s2:18.2,zdfl_ch:-0.0},
+  {region:"高二區",dealer:"康盟",zone:164,lian_s1:37.5,lian_s2:41.7,lian_ch:4.1,zdfl_s1:34.3,zdfl_s2:35.9,zdfl_ch:1.6},
+  {region:"高二區",dealer:"新學友",zone:164,lian_s1:43.2,lian_s2:36.3,lian_ch:-6.9,zdfl_s1:24.2,zdfl_s2:24.8,zdfl_ch:0.6},
+  {region:"高二區",dealer:"翊丞文教",zone:164,lian_s1:38.3,lian_s2:37.7,lian_ch:-0.7,zdfl_s1:34.6,zdfl_s2:32.8,zdfl_ch:-1.8}
+];
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const fmt=(n,dec=0)=>n==null?'–':n.toLocaleString('zh-TW',{maximumFractionDigits:dec});
+const pct=(n,dec=1)=>n==null?'–':(n*100).toFixed(dec)+'%';
+const pp=(n)=>n==null?'–':(n>=0?'+':'')+n.toFixed(1)+'pp';
+const sign=(n,d=1)=>(n>=0?'+':'')+n.toFixed(d);
+
+function dcls(v,threshold=0.005){return v>threshold?'up':v<-threshold?'dn':'flat'}
+function deltaHtml(v,isRate=true){
+  if(v==null)return '<span class="delta flat">–</span>';
+  const cls=dcls(isRate?v:v,isRate?0.005:0);
+  const txt=isRate?pp(v*100):sign(v,1)+'pp';
+  return `<span class="delta ${cls}">${txt}</span>`;
+}
+function groupOf(r){
+  return ['北一區','北二區','北三區','桃園區','桃竹區'].includes(r)?'north':
+         ['中一區','中二區'].includes(r)?'central':'south';
+}
+function prodCls(p){
+  return p==='練習簿'?'lian':p==='重點複習'?'zdfl':'xishu';
+}
+
+// ══════════════════════════════════════════
+// FONT SIZE
+// ══════════════════════════════════════════
+function setSize(px){document.documentElement.style.setProperty('--fs-base',px+'px')}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['summary','region','city','anomaly','dealer'][i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// SUMMARY TAB
+// ══════════════════════════════════════════
+function buildSummary(){
+  // Aggregate totals
+  const rs = DATA.region_summary;
+  const totals = {};
+  for(const r of rs){
+    if(!totals[r.product]) totals[r.product]={ord_s1:0,ord_s2:0,tb_s1:0};
+    totals[r.product].ord_s1+=r.ord_s1;
+    totals[r.product].ord_s2+=r.ord_s2;
+    totals[r.product].tb_s1+=r.tb_s1;
+  }
+  const grand={ord_s1:0,ord_s2:0};
+  for(const p in totals){grand.ord_s1+=totals[p].ord_s1;grand.ord_s2+=totals[p].ord_s2;}
+  const anomCount=DATA.city_summary.filter(r=>r.anomaly_s1||r.anomaly_s2).length;
+  const drops=DATA.region_summary.filter(r=>r.rate_s2<r.rate_s1-0.02).length;
+  const ups=DATA.region_summary.filter(r=>r.rate_s2>r.rate_s1+0.02).length;
+
+  const sc=document.getElementById('scorecard');
+  sc.innerHTML=`
+    <div class="sc-card"><div class="sc-label">全台練習簿 來單</div><div class="sc-val">${fmt(Math.round(grand.ord_s1/1000))}K</div><div class="sc-sub">上學期 → 下學期 ${fmt(Math.round(grand.ord_s2/1000))}K</div></div>
+    <div class="sc-card ${anomCount>0?'warn':'ok'}"><div class="sc-label">⚠ 異常縣市組合</div><div class="sc-val" style="color:var(--dn)">${anomCount}</div><div class="sc-sub">使用率 > 100%（疑跨縣市）</div></div>
+    <div class="sc-card"><div class="sc-label">練習簿 下學期使用率</div><div class="sc-val">${pct(totals['練習簿'].ord_s2/totals['練習簿'].tb_s1)}</div><div class="sc-sub">上學期 ${pct(totals['練習簿'].ord_s1/totals['練習簿'].tb_s1)}</div></div>
+    <div class="sc-card"><div class="sc-label">重點複習 下學期使用率</div><div class="sc-val">${pct(totals['重點複習'].ord_s2/totals['重點複習'].tb_s1)}</div><div class="sc-sub">上學期 ${pct(totals['重點複習'].ord_s1/totals['重點複習'].tb_s1)}</div></div>
+    <div class="sc-card"><div class="sc-label">語文習寫簿 下學期</div><div class="sc-val">${pct(totals['語文習寫簿'].ord_s2/totals['語文習寫簿'].tb_s1)}</div><div class="sc-sub">上學期 ${pct(totals['語文習寫簿'].ord_s1/totals['語文習寫簿'].tb_s1)}</div></div>
+    <div class="sc-card"><div class="sc-label">轄區×產品 下降 >2pp</div><div class="sc-val" style="color:var(--dn)">${drops}</div><div class="sc-sub">共 33 個轄區×產品組合</div></div>
+  `;
+
+  const lian_s1=totals['練習簿'].ord_s1,lian_s2=totals['練習簿'].ord_s2;
+  const zdfl_s1=totals['重點複習'].ord_s1,zdfl_s2=totals['重點複習'].ord_s2;
+  const xishu_s1=totals['語文習寫簿'].ord_s1,xishu_s2=totals['語文習寫簿'].ord_s2;
+  const tb=totals['練習簿'].tb_s1;
+
+  const sumBox=document.getElementById('summaryText');
+  sumBox.innerHTML=`
+    <h3>📋 114學年度 本學年整體狀況摘要</h3>
+    <p>本學年上下學期全台<span class="highlight">練習簿</span>來單量分別為 <strong>${fmt(lian_s1)}</strong> 本（上）、<strong>${fmt(lian_s2)}</strong> 本（下），使用率由 ${pct(lian_s1/tb)} 微降至 ${pct(lian_s2/tb)}，<span class="highlight-dn">整體下滑 ${fmt(lian_s1-lian_s2)} 本（-${((lian_s1-lian_s2)/lian_s1*100).toFixed(1)}%）</span>，顯示有改版調整空間。</p>
+    <p><span class="highlight">重點複習</span>來單量上學期 <strong>${fmt(zdfl_s1)}</strong> 本、下學期 <strong>${fmt(zdfl_s2)}</strong> 本，整體幾乎持平（差 ${fmt(zdfl_s1-zdfl_s2)} 本），但<span class="highlight-dn">中二區（-4,199本）、高一區（-2,320本）</span>有明顯下滑，<span class="highlight-up">中一區（+2,742本）、桃竹區（+2,247本）</span>則逆勢成長。</p>
+    <p><span class="highlight">語文習寫簿</span>下學期來單 <strong>${fmt(xishu_s2)}</strong> 本，整體使用率從 ${pct(xishu_s1/totals['語文習寫簿'].tb_s1)} 升至 ${pct(xishu_s2/totals['語文習寫簿'].tb_s1)}，為三大產品中唯一上升者。</p>
+    <p>異常偵測發現 <span class="highlight-dn">${anomCount} 個縣市×產品組合</span>的來單量超過教科書來單量，疑似有跨縣市販售情況，集中在<strong>北一區花蓮縣（重點複習）、北二區基隆市（重點複習）、嘉義縣語文習寫簿</strong>等，建議重點市調確認。</p>
+    <p>就改版市調優先順序而言：<span class="highlight-dn">中二區、高一區</span>的下滑幅度較大且上下學期均有，建議優先拜訪；<span class="highlight-up">中一區</span>重點複習使用率持續成長，可作為改版參考對象。</p>
+  `;
+
+  // Product table
+  const prods=['語文習寫簿','練習簿','重點複習'];
+  let html=`<thead><tr><th>產品</th><th class="r">上學期 來單</th><th class="r">使用率</th><th class="r">下學期 來單</th><th class="r">使用率</th><th class="r">來單差異</th><th class="r">使用率變化</th></tr></thead><tbody>`;
+  for(const p of prods){
+    const t=totals[p];
+    const rs1=t.ord_s1/t.tb_s1,rs2=t.ord_s2/t.tb_s1;
+    const diff=t.ord_s2-t.ord_s1;
+    const dc=dcls(rs2-rs1);
+    html+=`<tr>
+      <td><span class="prod-badge prod-${prodCls(p)}">${p}</span></td>
+      <td class="r">${fmt(t.ord_s1)}</td><td class="r">${pct(rs1)}</td>
+      <td class="r">${fmt(t.ord_s2)}</td><td class="r">${pct(rs2)}</td>
+      <td class="r"><span class="delta ${dcls(diff,0)}">${sign(diff,0)}</span></td>
+      <td class="r">${deltaHtml(rs2-rs1)}</td>
+    </tr>`;
+  }
+  html+='</tbody>';
+  document.getElementById('productTable').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// REGION CARDS
+// ══════════════════════════════════════════
+const REGION_ORDER=['北一區','北二區','北三區','桃園區','桃竹區','中一區','中二區','雲嘉區','台南區','高一區','高二區'];
+
+function renderRegionCards(){
+  const prod=document.getElementById('regionProduct').value;
+  const grid=document.getElementById('regionGrid');
+  grid.innerHTML='';
+
+  // Build lookup: region -> {product -> data}
+  const byRegion={};
+  for(const r of DATA.region_summary){
+    if(!byRegion[r.region]) byRegion[r.region]={};
+    byRegion[r.region][r.product]=r;
+  }
+
+  const prods=prod?[prod]:['語文習寫簿','練習簿','重點複習'];
+  const regions=[...REGION_ORDER];
+
+  for(const reg of regions){
+    const d=byRegion[reg];
+    if(!d) continue;
+    const grp=groupOf(reg);
+    const card=document.createElement('div');
+    card.className=`r-card ${grp}`;
+
+    let metrics='';
+    for(const p of prods){
+      if(!d[p]) continue;
+      const r=d[p];
+      const ch=r.rate_s2-r.rate_s1;
+      const dc=dcls(ch);
+      const pcls=prodCls(p);
+      metrics+=`<div class="r-metric">
+        <div class="r-metric-label" style="color:var(--${pcls})">${p}</div>
+        <div class="r-metric-s1">${pct(r.rate_s1)} → </div>
+        <div class="r-metric-s2">${pct(r.rate_s2)}</div>
+        <div class="r-metric-d" style="color:var(--${dc==='up'?'up':'dn'})">${ch>=0?'+':''}${(ch*100).toFixed(1)}pp</div>
+      </div>`;
+    }
+    card.innerHTML=`<div class="r-name">${reg}</div><div class="r-rows">${metrics}</div>`;
+    grid.appendChild(card);
+  }
+
+  // Total card
+  const totCard=document.createElement('div');
+  totCard.className='r-card total-card';
+  const tot={};
+  for(const r of DATA.region_summary){
+    if(!tot[r.product]) tot[r.product]={ord_s1:0,ord_s2:0,tb:0};
+    tot[r.product].ord_s1+=r.ord_s1; tot[r.product].ord_s2+=r.ord_s2; tot[r.product].tb+=r.tb_s1;
+  }
+  let totMetrics='';
+  for(const p of prods){
+    if(!tot[p]) continue;
+    const rs1=tot[p].ord_s1/tot[p].tb, rs2=tot[p].ord_s2/tot[p].tb;
+    const ch=rs2-rs1; const dc=dcls(ch);
+    totMetrics+=`<div class="r-metric">
+      <div class="r-metric-label">${p}</div>
+      <div class="r-metric-s1">${pct(rs1)} → </div>
+      <div class="r-metric-s2">${pct(rs2)}</div>
+      <div class="r-metric-d" style="color:${ch>=0?'#4caf82':'#f47373'}">${ch>=0?'+':''}${(ch*100).toFixed(1)}pp</div>
+    </div>`;
+  }
+  totCard.innerHTML=`<div class="r-name">▶ 全台總計</div><div class="r-rows">${totMetrics}</div>`;
+  grid.appendChild(totCard);
+}
+
+// ══════════════════════════════════════════
+// CITY TABLE
+// ══════════════════════════════════════════
+let citySort='region';
+function setCitySort(s){
+  citySort=s;
+  document.querySelectorAll('#panel-city .s-btn').forEach(b=>b.classList.remove('on'));
+  event.target.classList.add('on');
+  renderCityTable();
+}
+function renderCityTable(){
+  const prod=document.getElementById('cityProduct').value;
+  const reg=document.getElementById('cityRegion').value;
+  let data=[...DATA.city_summary];
+  if(prod) data=data.filter(r=>r.product===prod);
+  if(reg) data=data.filter(r=>r.region===reg);
+  if(citySort==='rate_s2_desc') data.sort((a,b)=>b.rate_s2-a.rate_s2);
+  else if(citySort==='change_asc') data.sort((a,b)=>a.rate_change-b.rate_change);
+  else if(citySort==='change_desc') data.sort((a,b)=>b.rate_change-a.rate_change);
+  else data.sort((a,b)=>a.region.localeCompare(b.region,'zh-TW')||a.product.localeCompare(b.product)||a.city.localeCompare(b.city));
+
+  document.getElementById('cityCount').innerHTML=`顯示 <strong>${data.length}</strong> 筆`;
+  const maxOrd=Math.max(...DATA.city_summary.map(r=>Math.max(r.ord_s1,r.ord_s2)));
+
+  let html=`<thead><tr><th>轄區</th><th>縣市</th><th>產品</th><th class="r">上學期 來單</th><th class="r">使用率</th><th class="r">下學期 來單</th><th class="r">使用率</th><th class="r">使用率變化</th><th class="r">教科書上限</th></tr></thead><tbody>`;
+  for(const r of data){
+    const grp=groupOf(r.region);
+    const anom=r.anomaly_s1||r.anomaly_s2;
+    const barW1=Math.min(100,r.ord_s1/maxOrd*100).toFixed(0);
+    const barW2=Math.min(100,r.ord_s2/maxOrd*100).toFixed(0);
+    const pcls=prodCls(r.product);
+    html+=`<tr>
+      <td><span class="badge ${grp}">${r.region}</span></td>
+      <td><strong>${r.city.replace(/[A-Z]$/,'')}</strong>${anom?` <span class="anom-pill ${r.rate_s1>1.2||r.rate_s2>1.2?'severe':''}">⚠ 超標</span>`:''}</td>
+      <td><span class="prod-badge prod-${pcls}">${r.product}</span></td>
+      <td class="r"><div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span class="bar-wrap"><span class="bar-fill bar-${pcls}" style="width:${barW1}%"></span></span>${fmt(r.ord_s1)}</div></td>
+      <td class="r">${pct(r.rate_s1)}</td>
+      <td class="r"><div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span class="bar-wrap"><span class="bar-fill bar-${pcls}" style="width:${barW2}%"></span></span>${fmt(r.ord_s2)}</div></td>
+      <td class="r">${pct(r.rate_s2)}</td>
+      <td class="r">${deltaHtml(r.rate_change)}</td>
+      <td class="r">${fmt(r.tb_s1)}</td>
+    </tr>`;
+  }
+  html+='</tbody>';
+  document.getElementById('cityTable').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// ANOMALY TAB
+// ══════════════════════════════════════════
+function renderAnomalyTable(){
+  const sem=document.getElementById('anomSem').value;
+  const prod=document.getElementById('anomProduct').value;
+  let data=[...DATA.city_summary];
+  if(sem==='s1') data=data.filter(r=>r.anomaly_s1);
+  else if(sem==='s2') data=data.filter(r=>r.anomaly_s2);
+  else data=data.filter(r=>r.anomaly_s1||r.anomaly_s2);
+  if(prod) data=data.filter(r=>r.product===prod);
+  data.sort((a,b)=>Math.max(b.rate_s1,b.rate_s2)-Math.max(a.rate_s1,a.rate_s2));
+
+  document.getElementById('anomCount').innerHTML=`共 <strong>${data.length}</strong> 個異常組合`;
+  let html=`<thead><tr><th>轄區</th><th>縣市</th><th>產品</th><th class="r">上學期 使用率</th><th class="r">上學期 來單</th><th class="r">下學期 使用率</th><th class="r">下學期 來單</th><th class="r">教科書上限</th><th>狀態</th></tr></thead><tbody>`;
+  for(const r of data){
+    const grp=groupOf(r.region);
+    const s1Cls=r.anomaly_s1?'severe':'ok'; const s2Cls=r.anomaly_s2?'severe':'ok';
+    html+=`<tr style="cursor:pointer" onclick="showAnomalyDetail('${r.region}','${r.product}','${r.city}')">
+      <td><span class="badge ${grp}">${r.region}</span></td>
+      <td><strong>${r.city.replace(/[A-Z]$/,'')}</strong></td>
+      <td><span class="prod-badge prod-${prodCls(r.product)}">${r.product}</span></td>
+      <td class="r" style="color:${r.anomaly_s1?'var(--dn)':'inherit'}">${pct(r.rate_s1)}</td>
+      <td class="r">${fmt(r.ord_s1)}</td>
+      <td class="r" style="color:${r.anomaly_s2?'var(--dn)':'inherit'}">${pct(r.rate_s2)}</td>
+      <td class="r">${fmt(r.ord_s2)}</td>
+      <td class="r">${fmt(r.tb_s1)}</td>
+      <td>
+        ${r.anomaly_s1?`<span class="anom-pill severe">上學期超標 +${((r.rate_s1-1)*100).toFixed(0)}%</span>`:`<span class="anom-pill ok">上學期正常</span>`}
+        ${r.anomaly_s2?`<span class="anom-pill severe">下學期超標 +${((r.rate_s2-1)*100).toFixed(0)}%</span>`:`<span class="anom-pill ok">下學期正常</span>`}
+      </td>
+    </tr>`;
+  }
+  html+='</tbody>';
+  document.getElementById('anomTable').innerHTML=html;
+}
+
+function showAnomalyDetail(region, product, city){
+  // Find grade-level detail
+  const detail=DATA.city_detail? DATA.city_detail.filter(r=>r.region===region&&r.product===product&&r.city===city) : [];
+  const div=document.getElementById('anomDetail');
+  if(!detail.length){div.innerHTML='<p style="font-size:.78rem;color:var(--muted)">（無年級細項資料）</p>';return;}
+  let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+    <div style="padding:10px 14px;background:var(--surface2);font-size:.78rem;font-weight:600;border-bottom:1px solid var(--border)">${region} ${city.replace(/[A-Z]$/,'')} ─ ${product} 年級明細</div>
+    <table style="font-size:.75rem"><thead><tr><th>年級</th><th class="r">上學期來單</th><th class="r">上學期使用率</th><th class="r">下學期來單</th><th class="r">下學期使用率</th><th class="r">教科書上限</th></tr></thead><tbody>`;
+  for(const r of detail){
+    const a1=r.usage_rate_s1>1, a2=r.usage_rate_s2>1;
+    html+=`<tr>
+      <td>${r.grade}年級</td>
+      <td class="r">${fmt(r.orders_s1)}</td>
+      <td class="r" style="color:${a1?'var(--dn)':'inherit'}">${pct(r.usage_rate_s1)}${a1?' ⚠':''}</td>
+      <td class="r">${fmt(r.orders_s2)}</td>
+      <td class="r" style="color:${a2?'var(--dn)':'inherit'}">${pct(r.usage_rate_s2)}${a2?' ⚠':''}</td>
+      <td class="r">${fmt(r.textbook_orders_s1)}</td>
+    </tr>`;
+  }
+  html+='</tbody></table></div>';
+  div.innerHTML=html;
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ══════════════════════════════════════════
+// DEALER TABLE
+// ══════════════════════════════════════════
+let dealerSort='region';
+function setDealerSort(s){
+  dealerSort=s;
+  document.querySelectorAll('#panel-dealer .s-btn').forEach(b=>b.classList.remove('on'));
+  event.target.classList.add('on');
+  renderDealerTable();
+}
+function renderDealerTable(){
+  const reg=document.getElementById('dealerRegion').value;
+  const q=document.getElementById('dealerSearch').value.trim();
+  let data=[...DEALER_DATA];
+  if(reg) data=data.filter(d=>d.region===reg);
+  if(q) data=data.filter(d=>d.dealer.includes(q));
+  if(dealerSort==='lian_dn') data.sort((a,b)=>a.lian_ch-b.lian_ch);
+  else if(dealerSort==='zdfl_dn') data.sort((a,b)=>a.zdfl_ch-b.zdfl_ch);
+  else if(dealerSort==='lian_up') data.sort((a,b)=>b.lian_ch-a.lian_ch);
+  else data.sort((a,b)=>a.region.localeCompare(b.region,'zh-TW')||a.dealer.localeCompare(b.dealer));
+
+  document.getElementById('dealerCount').innerHTML=`顯示 <strong>${data.length}</strong> 家（上下學期均有購買，四科平均使用率）`;
+  const maxL=Math.max(...DEALER_DATA.map(d=>Math.max(d.lian_s1,d.lian_s2)));
+  const maxZ=Math.max(...DEALER_DATA.map(d=>Math.max(d.zdfl_s1,d.zdfl_s2)));
+
+  let html=`<thead><tr><th>轄區</th><th>經銷商</th><th class="r">練習簿<br>上學期</th><th class="r">練習簿<br>下學期</th><th class="r">練習簿<br>變化</th><th class="r">重點複習<br>上學期</th><th class="r">重點複習<br>下學期</th><th class="r">重點複習<br>變化</th></tr></thead><tbody>`;
+  for(const d of data){
+    const grp=groupOf(d.region);
+    const lWarn=Math.abs(d.lian_ch)>10,zWarn=Math.abs(d.zdfl_ch)>10;
+    const lBarW=Math.min(100,d.lian_s2/maxL*100).toFixed(0);
+    const zBarW=Math.min(100,d.zdfl_s2/maxZ*100).toFixed(0);
+    const ldc=dcls(d.lian_ch,0.5); const zdc=dcls(d.zdfl_ch,0.5);
+    html+=`<tr>
+      <td><span class="badge ${grp}">${d.region}</span></td>
+      <td><strong>${d.dealer}</strong></td>
+      <td class="r" style="color:var(--muted)">${d.lian_s1.toFixed(1)}%</td>
+      <td class="r"><div style="display:flex;align-items:center;justify-content:flex-end;gap:5px"><span class="bar-wrap"><span class="bar-fill bar-lian" style="width:${lBarW}%"></span></span>${d.lian_s2.toFixed(1)}%</div></td>
+      <td class="r"><span class="delta ${ldc}">${sign(d.lian_ch)}pp</span></td>
+      <td class="r" style="color:var(--muted)">${d.zdfl_s1.toFixed(1)}%</td>
+      <td class="r"><div style="display:flex;align-items:center;justify-content:flex-end;gap:5px"><span class="bar-wrap"><span class="bar-fill bar-zdfl" style="width:${zBarW}%"></span></span>${d.zdfl_s2.toFixed(1)}%</div></td>
+      <td class="r"><span class="delta ${zdc}">${sign(d.zdfl_ch)}pp</span></td>
+    </tr>`;
+  }
+  html+='</tbody>';
+  document.getElementById('dealerTable').innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildSummary();
+renderRegionCards();
+renderCityTable();
+renderAnomalyTable();
+renderDealerTable();
+</script>
+</body>
+</html>
+
